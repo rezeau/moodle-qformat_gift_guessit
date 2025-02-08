@@ -24,11 +24,13 @@
 
 $string['braceerror'] = 'Could not find {...} around answers';
 $string['giftleftbraceerror'] = 'Could not find a {';
-$string['giftnovalidquestion'] = 'No valid question found';
+$string['giftnovalidquestion'] = 'There is an error in your Guessit question formatting. Check the documentation.';
 $string['giftqtypenotset'] = 'Question type is not set';
 $string['giftrightbraceerror'] = 'Could not find a }';
 $string['importminerror'] = 'There is an error in the question. There are not enough answers for this question type';
+$string['noguessitgaps'] = 'Missing word(s) to be guessed on line 2: {$a}';
 $string['nohandler'] = 'No handler for question type {$a}';
+$string['noname'] = 'No name provided for this question on line 1: {$a}';
 $string['pluginname'] = 'GIFT to guessit format';
 $string['pluginname_help'] = 'GIFT to guessit format enables guessit questions to be imported from a text file.';
 $string['pluginname_link'] = 'qformat/gift_guessit';

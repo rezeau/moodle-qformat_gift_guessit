@@ -92,6 +92,61 @@ class qformat_gift_guessit extends qformat_default {
 
         return in_array($file->get_mimetype(), $mimetypes);
     }
+
+    protected function get_question_name($line) {    
+        if (preg_match('/::(.*?)::/', $line, $matches)) {
+            return $matches[1];
+        }
+        return '';
+    }
+
+    protected function extract_question_text($line) {
+        if (preg_match('/::(.*?)::(.*?)\{/', $line, $matches)) {
+            return $matches[2];
+        }
+        return '';
+    }
+
+    protected function extract_guessitgaps($line) {
+        if (!preg_match('/::(.*?)::/', $line) && !preg_match('/\[.*?\|.*?\]/', $line)
+        && !preg_match('/^####/', $line) /*&& !preg_match('/^\}/', $line)*/) {
+            return trim($line);
+        }
+        return '';
+    }
+
+    protected function extract_param($line) {
+        if (preg_match('/\[(.*?)\]/', $line, $matches)) {
+            return $matches[1];
+        }
+        return '';
+    }
+
+    protected function extract_feedback_message($line) {
+        if (preg_match('/^####(.*)/', $line, $matches)) {
+            return trim($matches[1]);
+        }
+        return '';
+    }
+    protected function extract_params_elements($params) {
+        $elements = explode('|', $params);
+        $param1 = $elements[0] ?? null;
+        $param2 = $elements[1] ?? null;
+        $param3 = $elements[2] ?? null;
+        return [
+            'display' => $param1 !== '' ? $param1 : null,
+            'nbmax' => $param2 !== '' ? $param2 : null,
+            'removespecificfeedback' => $param3 !== '' ? $param3 : null
+        ];
+    }
+    
+    protected function check_element($element, $errormsg, $line) {
+        if ($element == '') {
+            $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $line));
+            return false;
+        }
+        return true;
+    }
     /**
      * Parses an array of lines to create a question object suitable for Moodle.
      *
@@ -123,7 +178,6 @@ class qformat_gift_guessit extends qformat_default {
         if ($text == '') {
             return false;
         }
-
         // Substitute escaped control characters with placeholders.
         //$text = $this->escapedchar_pre($text);
         // Look for category modifier.
@@ -136,37 +190,52 @@ class qformat_gift_guessit extends qformat_default {
             return $question;
         }
 
-        // Use regex to extract the required values// Use regex to extract the required values
-        if (preg_match('/^::([^:]+)::([^{}]+)\{\s*([\s\S]+?)\s*\[([^\]]+)\]\[(\d+)\]\[(\d+)\](?:\s*####(.*?))?\s*\}$/', $text, $matches)) {
-            $name = trim($matches[1] ?? "");
-            $questiontext = trim($matches[2] ?? "");
-            $guessitgaps = trim($matches[3] ?? "");
-            $display = trim($matches[4] ?? "");
-            $nbmax = trim($matches[5] ?? "");
-            $rmfb = trim($matches[6] ?? "");
-            $gfb = isset($matches[7]) ? trim($matches[7]) : ""; // Now properly captures $gfb
-        } else {
-            echo "ERROR ERROR ERROR";
-        }
         $question->qtype = 'guessit';
+
+        // Get all the needed elements from $lines.
+        $name = $this->get_question_name($lines[1]);
+        $questiontext = $this->extract_question_text($lines[1]);
+        $guessitgaps = $this->extract_guessitgaps($lines[2]);
+        $params = $this->extract_param($lines[3]);
+        $gfb = $this->extract_feedback_message($lines[4]);
+        $paramelements = $this->extract_params_elements($params);
+        $display = $paramelements['display'];
+        $nbmax = $paramelements['nbmax'];
+        $rmfb = $paramelements['removespecificfeedback'];
+        // Now check syntax is OK.
+        if (!$this->check_element($name, 'noname', $lines[0])) {
+            return false;
+        }
+        if (!$this->check_element($guessitgaps, 'noguessitgaps', $lines[1])) {
+            return false;
+        }
+
+        // Now complete the question elements.
         $question->name = $name;
-        $question->questiontext = $questiontext;
+        // If no description provided, use $guessitgaps for the question text.
+        $questiontext = ($questiontext == '') ? $guessitgaps : $questiontext;
+
+        // Add paragraph tags to separate the description from the gaps line.
+        $question->questiontext = '<p>' . $questiontext . '</p>';
+
         $question->guessitgaps = $guessitgaps;
-        $question->nbtriesbeforehelp = $nbmax;
-        $question->nbmaxtrieswordle = $nbmax;
         if ($display == 'wordle') {
             $question->wordle = '1';
+            // Set default if param is missing.
+            $nbmax = ($nbmax == '') ? '10' : $nbmax;
+            $question->nbmaxtrieswordle = $nbmax;
         } else {
             $question->wordle = '0';
+            // Set default if param is missing.
+            $nbmax = ($nbmax == '') ? '6' : $nbmax;
+            $question->nbtriesbeforehelp = $nbmax;
+            // Set default if param is missing.
+            $display = ($display == '') ? 'gapsizegrow' : $display;
             $question->gapsizedisplay = $display;
         }
         $question->removespecificfeedback = $rmfb;
         $question->generalfeedback = $gfb;
-        echo '$question<pre>';
-        print_r($question);
-        echo '</pre>';
-        //die;
         return $question;
-        }
     }
+}
 

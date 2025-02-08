@@ -1,25 +1,25 @@
-// ===Guessit===
-// On line 2 enter the words to be guessed
-// On line 3 enter gapsizedisplay [gapsizegrow|gapsizematchword|gapsizefixed]
-// then nbtriesbeforehelp, default [10] then removespecificfeedback default [0]
-// On line 4 enter the General feedback (optional)
+// guessit with full params
 ::GUESSIT-QOO::Find this English proverb{
     Too many cooks spoil the broth.
-    [gapsizegrow][6][0]
+    [gapsizefixed|6|0]
     ####A kitchen proverb!
 }
 
-::GUESSIT-QO1::Find this other proverb{
-    Beggars can't be choosers.
-    [gapsizegrow][10][1]
+// guessit with no params at all
+::GUESSIT-QO1::{
+    Beggars can't really be choosers.
+    [||]
 }
 
-
-// ===Guessit Wordle===
-// On line 2 enter the unique WORD to be guessed (UPPERCASE LETTERS)
-// On line 3 enter [wordle] then nbmaxtrieswordle, default [10] then removespecificfeedback default [0]
+// wordle with full params
 ::GUESSIT-QO2::Find this Italian dish{
     PIZZA
-    [wordle][6][1]
+    [wordle|6|1]
     ####Enjoy your pizza!
+}
+
+// wordle with no params
+::GUESSIT-Q99::another italian dish{
+    PESTO
+    [wordle||]
 }
