@@ -121,7 +121,21 @@ class qformat_gift_guessit extends qformat_default {
         }
         return '';
     }
-
+    protected function extract_elements($input) {        
+        $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*\[(\w*)\|(\d*)\|(\d*)\])?(?:####(.*?))?\}/';
+        if (preg_match($pattern, $input, $matches)) {
+            return [
+            'name' => trim($matches[1]) ?? '',
+            'description' => isset($matches[2]) && $matches[2] !== '' ? trim($matches[2]) : '',
+            'guessitgaps' => isset($matches[3]) ? trim($matches[3]) : '',
+            'gaptype' => isset($matches[4]) ? trim($matches[4]) : '',
+            'nbtries' => isset($matches[5]) ? trim($matches[5]) : '',
+            'rmfb' => isset($matches[6]) ? trim($matches[6]) : '',
+            'feedback' => isset($matches[7]) ? trim($matches[7]) : ''
+            ];
+        }
+        return 'ERROR';
+    }
     protected function extract_feedback_message($line) {
         if (preg_match('/^####(.*)/', $line, $matches)) {
             return trim($matches[1]);
@@ -140,12 +154,21 @@ class qformat_gift_guessit extends qformat_default {
         ];
     }
     
-    protected function check_element($element, $errormsg, $line) {
+    protected function check_element($element, $errormsg, $text) {
         if ($element == '') {
-            $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $line));
+            $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $text));
             return false;
         }
         return true;
+    }
+    
+    protected function has_curly_braced_string($text, $errormsg) {
+        if (preg_match('/\{[^{}]+\}/', $text) === 1) {
+            return true;
+        } else {
+            $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $text));
+            return false;
+        }
     }
     /**
      * Parses an array of lines to create a question object suitable for Moodle.
@@ -191,26 +214,42 @@ class qformat_gift_guessit extends qformat_default {
         }
 
         $question->qtype = 'guessit';
-
-        // Get all the needed elements from $lines.
-        $name = $this->get_question_name($lines[1]);
-        $questiontext = $this->extract_question_text($lines[1]);
-        $guessitgaps = $this->extract_guessitgaps($lines[2]);
-        $params = $this->extract_param($lines[3]);
-        $gfb = $this->extract_feedback_message($lines[4]);
-        $paramelements = $this->extract_params_elements($params);
-        $display = $paramelements['display'];
-        $nbmax = $paramelements['nbmax'];
-        $rmfb = $paramelements['removespecificfeedback'];
-        // Now check syntax is OK.
-        if (!$this->check_element($name, 'noname', $lines[0])) {
+        /*
+        echo '$lines<pre>';
+        print_r($lines);
+        echo '</pre>';
+        */
+        echo '$text<pre>';
+        print_r($text);
+        echo '</pre>';
+        
+        // todo this relies on guessit questions being entered on ONE LINE only.
+        // maybe revise to accept more lines?
+        if (!$this->has_curly_braced_string($text, 'braceerror')) {
             return false;
         }
+        $elements = $this->extract_elements($text);
+        echo '$elements<pre>';
+        print_r($elements);
+        echo '</pre>';
+        echo 'name = |' . $elements['name'] . '|<br>';
+        //return false;
+        // Get all the needed elements from $lines.
+        
+        // Now check syntax is OK.
+        
+        if ($this->check_element($elements['guessitgaps'], 'noguessitgaps', $text) == '') {
+            return false;
+        }
+            return false;
+        /*
         if (!$this->check_element($guessitgaps, 'noguessitgaps', $lines[1])) {
             return false;
         }
+        */
 
         // Now complete the question elements.
+        $name = ($name == '') ? $guessitgaps : $name;
         $question->name = $name;
         // If no description provided, use $guessitgaps for the question text.
         $questiontext = ($questiontext == '') ? $guessitgaps : $questiontext;
@@ -235,6 +274,7 @@ class qformat_gift_guessit extends qformat_default {
         }
         $question->removespecificfeedback = $rmfb;
         $question->generalfeedback = $gfb;
+        return false;
         return $question;
     }
 }

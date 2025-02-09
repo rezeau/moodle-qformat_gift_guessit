@@ -5,10 +5,10 @@
     ####A kitchen proverb!
 }
 
-// guessit with no params at all
+// guessit with only
 ::GUESSIT-QO1::{
     Beggars can't really be choosers.
-    [||]
+    [|9|]
 }
 
 // wordle with full params
@@ -20,6 +20,12 @@
 
 // wordle with no params
 ::GUESSIT-Q99::another italian dish{
+    PESTO
+    [wordle||]
+}
+
+// guessit with no name
+::another italian dish::{
     PESTO
     [wordle||]
 }
