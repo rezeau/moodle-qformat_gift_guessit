@@ -32,3 +32,4 @@ $string['pluginname'] = 'GIFT to guessit format';
 $string['pluginname_help'] = 'GIFT to guessit format enables guessit questions to be imported from a text file.';
 $string['pluginname_link'] = 'qformat/gift_guessit';
 $string['privacy:metadata'] = 'The GIFT to guessit question format plugin does not store any personal data.';
+$string['wordlecapitalsonly'] = 'ERROR! In the Wordle option, You must type a single word and only use UPPERCASE LETTERS (A-Z) and no accents -> {$a}';
