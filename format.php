@@ -18,7 +18,7 @@
  * Code for changing gift to guessit when importing gift.
  *
  * @package    qformat_gift_guessit
- * @copyright  Joseph Rézeau 2021 <joseph@rezeau.org>
+ * @copyright  Joseph Rézeau 2025 <joseph@rezeau.org>
  * @copyright based on work by 1999 onwards Martin Dougiamas {@link http://moodle.com}
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
@@ -94,18 +94,19 @@ class qformat_gift_guessit extends qformat_default {
     }
 
     protected function extract_elements($input) {
-         $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*(\[(.*?)\]))?(?:####(.*?))?\}/';        
+        $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*(\[(.*?)\]))?(?:####(.*?))?\}/';        
         if (preg_match($pattern, $input, $matches)) {
             return array_filter([
-                'name' => trim($matches[1] ?? ''),
-                'description' => trim($matches[2] ?? ''),
-                'guessitgaps' => trim($matches[3] ?? ''),
+                'name' => isset($matches[1]) ? trim($matches[1], '[]') : null,
+                'description' => isset($matches[2]) ? trim($matches[2], '[]') : null,
+                'guessitgaps' => isset($matches[3]) ? trim($matches[3], '[]') : null,
                 'params' => isset($matches[4]) ? trim($matches[4], '[]') : null,
                 'generalfeedback' => trim($matches[6] ?? '')
             ], function ($value) {
                 return $value !== null && $value !== '';
             });
         }
+        // Should not happen.
         return 'ERROR';
     }
     
@@ -113,19 +114,19 @@ class qformat_gift_guessit extends qformat_default {
         $elements = explode('|', $params);
         $display = $elements[0] ?? null;
         $nbmax = $elements[1] ?? null;
-        $removespecificfeedback = $elements[2] ?? null;
+        $rmfb = $elements[2] ?? null;
         if (is_numeric($display)) {
             $nbmax = $display;
-            $display = '';
+            $display = null;
         }
         if ($nbmax < 2) {
             $rmfb = $nbmax;
             $nbmax = '';
         }
         return [
-            'display' => $display !== '' ? $display : null,
-            'nbmax' => $nbmax !== '' ? $nbmax : null,
-            'rmfb' => $rmfb !== '' ? $rmfb : null
+            'display' => $display !== null ? $display : null,
+            'nbmax' => $nbmax !== null ? $nbmax : null,
+            'rmfb' => $rmfb !== null ? $rmfb : null
         ];
     }
     
@@ -145,6 +146,44 @@ class qformat_gift_guessit extends qformat_default {
             return false;
         }
     }
+
+    public function readquestions($lines) {
+        $questions = array();
+        $question = null;
+        $endchar = chr(13);
+        $questionnumber = 1;
+        $hascategory = false;
+        foreach ($lines as $line) {
+            $newlines = explode($endchar, $line);
+            $linescount = count($newlines);
+            for ($i=0; $i < $linescount; $i++) {
+                $nowline = trim($newlines[$i]);
+                if (strlen($nowline) < 2) {
+                    continue;
+                }
+                $hascategory = preg_match('~^\$CATEGORY:~', $line);
+                if (!$hascategory && (substr($line, 0, 2) !== '//')) {
+                    if (!$this->has_curly_braced_string($nowline, 'braceerror')) {
+                    continue;
+                    }
+                }
+
+                if (substr($line, 0, 2) !== '//') {
+                    $question = $this->readquestion($line);
+                    if (!$hascategory && $question->questiontext == '') {
+                        // todo put this string in language file
+                        echo '<br>NO DESCRIPTION PROVIDED for question: ' . $questionnumber . ' ' .$question->name.  '<br>';
+                    }
+                    $questions[] = $question;
+                    if (!$hascategory) {
+                        $questionnumber++;
+                    }
+                }
+            }
+        }
+        return $questions;
+    }
+
     
     /**
      * Parses an array of lines to create a question object suitable for Moodle.
@@ -156,90 +195,62 @@ class qformat_gift_guessit extends qformat_default {
      * @param array $lines The array of lines defining a question.
      * @return object The question object generated from the input lines.
      */
-    public function readquestion($lines) {
-        // Given an array of lines known to define a question in this format, this function
-        // converts it into a question object suitable for processing and insertion into Moodle.
+    public function readquestion($line) {
         $question = $this->defaultquestion();
-
-        // Define replaced by simple assignment, stop redefine notices.
-        $giftanswerweightregex = '/^%\-*([0-9]{1,2})\.?([0-9]*)%/';
-
-        // Separate comments and implode.
-        $comments = '';
-        foreach ($lines as $key => $line) {            
-            $line = trim($line);
-            if (substr($line, 0, 2) == '//') {
-                $comments .= $line . "\n";
-                $lines[$key] = ' ';
-            }
-        }
-        $text = trim(implode("\n", $lines));
-        if ($text == '') {
-            return false;
-        }
-        //echo '<br>' . $counter . ' -> ' . $text;
-        // Substitute escaped control characters with placeholders.
-        //$text = $this->escapedchar_pre($text);
         // Look for category modifier.
-        if (preg_match('~^\$CATEGORY:~', $text)) {
-            $newcategory = trim(substr($text, 10));
-
+        if (preg_match('~^\$CATEGORY:~', $line)) {
+            $newcategory = trim(substr($line, 10));
             // Build fake question to contain category.
             $question->qtype = 'category';
             $question->category = $newcategory;
             return $question;
         }
-
+        // Init variables with their default values.
         $question->qtype = 'guessit';
+        $name = '';
+        $description = '';
+        $display = 'gapsizegrow';
+        $question->gapsizedisplay = 'gapsizegrow';
+        $nbmax = '6';
+        $rmfb = '0';
+        $question->nbmaxtrieswordle = '10';
+        $question->nbtriesbeforehelp = '6';
         
-        // todo this relies on guessit questions being entered on ONE LINE only.
-        // maybe revise to accept more lines?
-        if (!$this->has_curly_braced_string($text, 'braceerror')) {
+        $elements = $this->extract_elements($line);
+        if ($this->check_element($elements['guessitgaps'], 'noguessitgaps', $line) == '') {
             return false;
         }
-        $elements = $this->extract_elements($text);
-        
-        if ($this->check_element($elements['guessitgaps'], 'noguessitgaps', $text) == '') {
-            return false;
+        if (isset($elements['params'])) {
+            $params = $this->extract_params_elements($elements['params']);
+            $nbmax = ($params['nbmax'] == null) ? null : $params['nbmax'];
+            $display = ($params['display'] == null) ? 'gapsizegrow' : $params['display'];
+            $nbmax = ($params['nbmax'] == null) ? null : $params['nbmax'];
+            $rmfb = ($params['rmfb'] == null) ? null : $params['rmfb'];
         }
-        $params = $this->extract_params_elements($elements['params']);
-        
-        $name = $elements['name'];
-        $description = $elements['description'];
-        $guessitgaps = $elements['guessitgaps'];
-        $display = $params['display'];
-        $nbmax = $params['nbmax'];
-        $removespecificfeedback = $params['removespecificfeedback'];
-        $generalfeedback = $elements['generalfeedback'];
-        // Now complete the question elements.
-        
-        // Init potentially missing question elements
-        // If no name provided, use the description if exists.
-        $name = ($name == '') ? $description : $name;
-        // If no name and no description, use the guessitgaps.
-        $name = ($name == '') ? $guessitgaps : $name;
-        $description = ($description == '') ? '' : $description;
+        $name = isset($elements['name']) ? $elements['name'] : '';
+        $description = isset($elements['description']) ? $elements['description'] : '';
+        $guessitgaps = isset($elements['guessitgaps']) ? $elements['guessitgaps'] : '';
+        $generalfeedback = isset($elements['generalfeedback']) ? $elements['generalfeedback'] : '';
+
+        // Add paragraph tags to separate the description from the gaps line.
+        $description = ($description == null) ? '' : '<p>' . $description . '</p>';
         /** Description goes in fact to the Question text field in all Moodle questions.
          * But in the guessit question it has been made optional, so can be entered as ''.
          * NO DESCRIPTION PROVIDED is only displayed on the import page.
         */
-        
-        $display = ($display == '') ? 'gapsizegrow' : $display;
-        $nbmax = ($nbmax == '') ? '6' : $nbmax;
-        $gapsizedisplay = ($gapsizedisplay == '') ? 'gapsizegrow' : $gapsizedisplay;
-        $removespecificfeedback = ($removespecificfeedback == '') ? '0' : $removespecificfeedback;
+        // If no name provided, use the description if exists.
+        $name = ($name == '') ? $description : $name;
+        $name = ($name == '') ? $guessitgaps : $name;
+        $question->questiontext = $description;
         $generalfeedback = ($generalfeedback == '') ? '' : $generalfeedback;
         $question->name = $name;
-        // Add paragraph tags to separate the description from the gaps line.
-        $question->questiontext = $description;
-
         if ($display == 'wordle') {
             $question->wordle = '1';
             // Set default if param is missing.
             $nbmax = ($nbmax == '') ? '10' : $nbmax;
             $question->nbmaxtrieswordle = $nbmax;
             if (preg_match('/[^A-Z]/', $guessitgaps) ) {
-                $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', '<br>' . $text));
+                $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', '<br>' . $line));
                 return false;
             };
         } else {
@@ -247,22 +258,18 @@ class qformat_gift_guessit extends qformat_default {
             // Set default if param is missing.
             $nbmax = ($nbmax == '') ? '6' : $nbmax;
             $question->nbtriesbeforehelp = $nbmax;
-            // Set default if param is missing.
-            $display = ($display == '') ? 'gapsizegrow' : $display;
             $question->gapsizedisplay = $display;
         }
 
         $question->guessitgaps = $guessitgaps;
-        $question->removespecificfeedback = $removespecificfeedback;
+        $question->removespecificfeedback = $rmfb;
         $question->generalfeedback = $generalfeedback;
-
-        // Remove all useless elements from question.
+        // To prevent penalty display when viewing guessit questions.
+        $question->penalty = 0;
+        // Remove all useless elements from question.        
         unset($question->image, $question->usecase, $question->multiplier,
-            $question->answernumbering, $question->penalty,
+            $question->answernumbering,
             $question->correctfeedback, $question->length, $question->partiallycorrectfeedback, $question->incorrectfeedback, $question->shuffleanswers);
-        if ($description == '') {
-            echo '<br>NO DESCRIPTION PROVIDED for this question: ' . $guessitgaps . '<br>';
-        }
         return $question;
     }
 }
