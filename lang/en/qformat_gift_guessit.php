@@ -23,11 +23,13 @@
  */
 
 $string['braceerror'] = 'Could not find a pair of {...} around word(s) to be guessed -> {$a}';
+$string['bracketserror'] = 'Incorrectly matched square brackets in this question -> {$a}';
 $string['giftnovalidquestion'] = 'There is an error in your Guessit question formatting. Check the documentation.';
 $string['giftqtypenotset'] = 'Question type is not set';
+$string['nodescriptionprovided'] = 'No description provided for question n°{$a->questionnumber} -> {$a->questionname}';
 $string['noguessitgaps'] = 'Could not find word(s) to be guessed in question -> {$a}';
 $string['nohandler'] = 'No handler for question type {$a}';
-$string['noname'] = 'No name provided for this question on line 1: {$a}';
+$string['noname'] = 'No name provided or badly formatted colons for this question -> {$a}';
 $string['pluginname'] = 'GIFT to guessit format';
 $string['pluginname_help'] = 'GIFT to guessit format enables guessit questions to be imported from a text file.';
 $string['pluginname_link'] = 'qformat/gift_guessit';

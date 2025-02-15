@@ -24,8 +24,6 @@
 
 namespace qformat_gift_guessit\privacy;
 
-defined('MOODLE_INTERNAL') || die();
-
 /**
  * Privacy Subsystem for qformat_gift_guessit implementing null_provider.
  *

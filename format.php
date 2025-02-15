@@ -25,22 +25,6 @@
 
 defined('MOODLE_INTERNAL') || die();
 
-// Define guessitmode modes.
-/**
- * Use all answers (default mode).
- */
-define('guessitMODE_DEFAULT',   '0');
-
-/**
- * Manual selection.
- */
-define('guessitMODE_MANUAL',     '1');
-
-/**
- * Automatic random selection.
- */
-define('guessitMODE_AUTO',    '2');
-
 require_once($CFG->dirroot . '/question/format/xml/format.php');
 
 /**
@@ -93,15 +77,21 @@ class qformat_gift_guessit extends qformat_default {
         return in_array($file->get_mimetype(), $mimetypes);
     }
 
+    /**
+     * Extracts elements from a formatted input string using regex.
+     *
+     * @param string $input The input string to parse.
+     * @return array|string An associative array of extracted elements or 'ERROR' on failure.
+     */
     protected function extract_elements($input) {
-        $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*(\[(.*?)\]))?(?:####(.*?))?\}/';        
+        $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*(\[(.*?)\]))?(?:####(.*?))?\}/';
         if (preg_match($pattern, $input, $matches)) {
             return array_filter([
                 'name' => isset($matches[1]) ? trim($matches[1], '[]') : null,
                 'description' => isset($matches[2]) ? trim($matches[2], '[]') : null,
                 'guessitgaps' => isset($matches[3]) ? trim($matches[3], '[]') : null,
                 'params' => isset($matches[4]) ? trim($matches[4], '[]') : null,
-                'generalfeedback' => trim($matches[6] ?? '')
+                'generalfeedback' => trim($matches[6] ?? ''),
             ], function ($value) {
                 return $value !== null && $value !== '';
             });
@@ -109,7 +99,13 @@ class qformat_gift_guessit extends qformat_default {
         // Should not happen.
         return 'ERROR';
     }
-    
+
+    /**
+     * Extracts parameter elements from a delimited string.
+     *
+     * @param string $params The parameter string to parse, delimited by '|'.
+     * @return array An associative array containing 'display', 'nbmax', and 'rmfb' values.
+     */
     protected function extract_params_elements($params) {
         $elements = explode('|', $params);
         $display = $elements[0] ?? null;
@@ -126,10 +122,18 @@ class qformat_gift_guessit extends qformat_default {
         return [
             'display' => $display !== null ? $display : null,
             'nbmax' => $nbmax !== null ? $nbmax : null,
-            'rmfb' => $rmfb !== null ? $rmfb : null
+            'rmfb' => $rmfb !== null ? $rmfb : null,
         ];
     }
-    
+
+    /**
+     * Checks if an element is non-empty; otherwise, logs an error.
+     *
+     * @param mixed $element The element to check.
+     * @param string $errormsg The error message key.
+     * @param string $text Additional text for the error message.
+     * @return bool True if the element is non-empty, false otherwise.
+     */
     protected function check_element($element, $errormsg, $text) {
         if ($element == '') {
             $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $text));
@@ -137,7 +141,14 @@ class qformat_gift_guessit extends qformat_default {
         }
         return true;
     }
-    
+
+    /**
+     * Checks if a string contains a correctly enclosed curly-braced substring.
+     *
+     * @param string $text The text to check.
+     * @param string $errormsg The error message key.
+     * @return bool True if a valid curly-braced substring is found, false otherwise.
+     */
     protected function has_curly_braced_string($text, $errormsg) {
         if (preg_match('/\{[^{}]+\}/', $text) === 1) {
             return true;
@@ -147,8 +158,68 @@ class qformat_gift_guessit extends qformat_default {
         }
     }
 
+    /**
+     * Checks if a string contains correctly balanced square brackets.
+     *
+     * @param string $text The text to check.
+     * @param string $errormsg The error message key.
+     * @return bool True if correctly balanced square brackets, false otherwise.
+     */
+    protected function is_balanced_brackets($text, $errormsg) {
+        // Remove all characters except brackets.
+        $brackets = preg_replace('/[^\[\]]/', '', $text);
+        // Use a loop to remove balanced pairs iteratively.
+        while (strpos($brackets, '[]') !== false) {
+            $brackets = str_replace('[]', '', $brackets);
+        }
+        // If there are remaining brackets, they are unbalanced.
+        if (!($brackets === '')) {
+            $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $text));
+            return false;
+        }
+        return true;
+    }
+
+
+    /**
+     * Validates whether a line is correctly enclosed with a specific pattern.
+     *
+     * @param string $line The line to check.
+     * @param string $errormsg The error message key.
+     * @return bool True if correctly enclosed, false otherwise.
+     */
+    protected function is_correctly_enclosed($line, $errormsg) {
+        $pattern = '/^(::[\w\s]+::)?[^:{}]*\{[^}]+\}/';
+        if (preg_match($pattern, $line) === 1) {
+            return true;
+        } else {
+            $this->error('<br>' . get_string(''. $errormsg . '', 'qformat_gift_guessit', $line));
+            return false;
+        }
+    }
+
+    /**
+     * Extracts text between square brackets from a given string.
+     *
+     * @param string $somestring The input string.
+     * @return string The extracted text or an empty string if none found.
+     */
+    function extract_between_brackets($string) {
+        preg_match('/\[(.*?)\]$/', $string, $matches);
+        $idnumber = $matches[1] ?? '';
+        // Remove the idnumber part (including brackets) from the original string
+        $category = trim(preg_replace('/\s*\[.*?\]$/', '', $string));
+        return ['category' => $category, 'idnumber' => $idnumber];
+    }
+
+    /**
+     * Parses an array of lines to extract questions.
+     *
+     * @param array $lines The lines to process.
+     * @return array An array of extracted questions.
+     */
     public function readquestions($lines) {
-        $questions = array();
+        $questions = [];
         $question = null;
         $endchar = chr(13);
         $questionnumber = 1;
@@ -156,27 +227,42 @@ class qformat_gift_guessit extends qformat_default {
         foreach ($lines as $line) {
             $newlines = explode($endchar, $line);
             $linescount = count($newlines);
-            for ($i=0; $i < $linescount; $i++) {
+            for ($i = 0; $i < $linescount; $i++) {
                 $nowline = trim($newlines[$i]);
                 if (strlen($nowline) < 2) {
                     continue;
                 }
                 $hascategory = preg_match('~^\$CATEGORY:~', $line);
                 if (!$hascategory && (substr($line, 0, 2) !== '//')) {
-                    if (!$this->has_curly_braced_string($nowline, 'braceerror')) {
-                    continue;
+                    if (!$this->has_curly_braced_string($nowline, 'braceerror')
+                        || !$this->is_balanced_brackets($nowline, 'bracketserror')) {
+                        continue;
                     }
                 }
 
                 if (substr($line, 0, 2) !== '//') {
                     $question = $this->readquestion($line);
-                    if (!$hascategory && $question->questiontext == '') {
-                        // todo put this string in language file
-                        echo '<br>NO DESCRIPTION PROVIDED for question: ' . $questionnumber . ' ' .$question->name.  '<br>';
-                    }
-                    $questions[] = $question;
-                    if (!$hascategory) {
-                        $questionnumber++;
+                    if ($question) {
+                        if (!$hascategory && !isset($question->questiontext)) {
+                            $question->questiontext = '';
+                            $a = new stdClass();
+                            $a->questionnumber = $questionnumber;
+                            $a->questionname = $question->name;
+                            echo('<br>' . get_string('nodescriptionprovided', 'qformat_gift_guessit', $a));
+                        }
+                        // If gift file has a category and an idnumber, automatically assign a number to each question.
+                        if (!$hascategory) {
+                            if ($categoryname != '') {
+                                $question->idnumber = $categoryname . '-' . $questionnumber;
+                            }
+                            $questionnumber++;
+                        } else {
+                            $categoryelements = $this->extract_between_brackets($question->category);
+                            $question->category = $categoryelements['category'];
+                            $question->idnumber = $categoryelements['idnumber'];
+                            $categoryname = $categoryelements['idnumber'];
+                        }
+                        $questions[] = $question;
                     }
                 }
             }
@@ -184,7 +270,6 @@ class qformat_gift_guessit extends qformat_default {
         return $questions;
     }
 
-    
     /**
      * Parses an array of lines to create a question object suitable for Moodle.
      *
@@ -197,6 +282,7 @@ class qformat_gift_guessit extends qformat_default {
      */
     public function readquestion($line) {
         $question = $this->defaultquestion();
+
         // Look for category modifier.
         if (preg_match('~^\$CATEGORY:~', $line)) {
             $newcategory = trim(substr($line, 10));
@@ -205,6 +291,7 @@ class qformat_gift_guessit extends qformat_default {
             $question->category = $newcategory;
             return $question;
         }
+
         // Init variables with their default values.
         $question->qtype = 'guessit';
         $name = '';
@@ -215,11 +302,20 @@ class qformat_gift_guessit extends qformat_default {
         $rmfb = '0';
         $question->nbmaxtrieswordle = '10';
         $question->nbtriesbeforehelp = '6';
-        
+
+        $isname = $this->is_correctly_enclosed($line, 'noname');
+        if (!$isname) {
+            $question = null;
+            return false;
+            return $question;
+        }
+
         $elements = $this->extract_elements($line);
+
         if ($this->check_element($elements['guessitgaps'], 'noguessitgaps', $line) == '') {
             return false;
         }
+
         if (isset($elements['params'])) {
             $params = $this->extract_params_elements($elements['params']);
             $nbmax = ($params['nbmax'] == null) ? null : $params['nbmax'];
@@ -233,17 +329,20 @@ class qformat_gift_guessit extends qformat_default {
         $generalfeedback = isset($elements['generalfeedback']) ? $elements['generalfeedback'] : '';
 
         // Add paragraph tags to separate the description from the gaps line.
-        $description = ($description == null) ? '' : '<p>' . $description . '</p>';
-        /** Description goes in fact to the Question text field in all Moodle questions.
-         * But in the guessit question it has been made optional, so can be entered as ''.
-         * NO DESCRIPTION PROVIDED is only displayed on the import page.
-        */
-        // If no name provided, use the description if exists.
+        $description = ($description == null) ? '' : $description;
+        // Description goes in fact to the Question text field in all Moodle questions.
+        // But in the guessit question it has been made optional, so can be entered as ''.
+        // NO DESCRIPTION PROVIDED is only displayed on the import page.
         $name = ($name == '') ? $description : $name;
         $name = ($name == '') ? $guessitgaps : $name;
-        $question->questiontext = $description;
+        if ($description !== '') {
+            $description = str_replace(':', '', $description);
+            $question->questiontext = '<p>' . $description . '</p>';
+        }
         $generalfeedback = ($generalfeedback == '') ? '' : $generalfeedback;
+        $name = str_replace(':', '', $name);
         $question->name = $name;
+        $nbgaps = 0;
         if ($display == 'wordle') {
             $question->wordle = '1';
             // Set default if param is missing.
@@ -252,13 +351,15 @@ class qformat_gift_guessit extends qformat_default {
             if (preg_match('/[^A-Z]/', $guessitgaps) ) {
                 $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', '<br>' . $line));
                 return false;
-            };
+            }
+            $nbgaps = count(str_split($guessitgaps));
         } else {
             $question->wordle = '0';
             // Set default if param is missing.
             $nbmax = ($nbmax == '') ? '6' : $nbmax;
             $question->nbtriesbeforehelp = $nbmax;
             $question->gapsizedisplay = $display;
+            $nbgaps = count(explode(' ', $guessitgaps));
         }
 
         $question->guessitgaps = $guessitgaps;
@@ -266,10 +367,14 @@ class qformat_gift_guessit extends qformat_default {
         $question->generalfeedback = $generalfeedback;
         // To prevent penalty display when viewing guessit questions.
         $question->penalty = 0;
-        // Remove all useless elements from question.        
+        $question->defaultmark = $nbgaps;
+        // Needed if there is an URL link in the feedback text.
+        $question->generalfeedbackformat = 1;
+        // Remove all useless elements from question.
         unset($question->image, $question->usecase, $question->multiplier,
-            $question->answernumbering,
-            $question->correctfeedback, $question->length, $question->partiallycorrectfeedback, $question->incorrectfeedback, $question->shuffleanswers);
+            $question->answernumbering, $question->correctfeedback, $question->length,
+            $question->partiallycorrectfeedback, $question->incorrectfeedback,
+            $question->shuffleanswers);
         return $question;
     }
 }
