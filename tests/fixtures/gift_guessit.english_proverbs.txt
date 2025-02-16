@@ -1,0 +1,20 @@
+// guessit with category name and ID and minimal formatting will trigger auto numbering
+$CATEGORY: Guessit English proverbs[enPrvb-A]
+
+{An apple a day keeps the doctor away.}
+
+{Too many cooks spoil the broth}
+
+{Beggars can't be choosers}
+
+{A bird in hand is worth two in the bush.}
+
+{A stitch in time saves nine.}
+
+{A rolling stone gathers no moss.}
+
+{All is well that ends well.}
+
+{Practice makes perfect.}
+
+{Once bitten twice shy.}
