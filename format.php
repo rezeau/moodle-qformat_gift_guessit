@@ -201,13 +201,13 @@ class qformat_gift_guessit extends qformat_default {
     /**
      * Extracts text between square brackets from a given string.
      *
-     * @param string $somestring The input string.
-     * @return string The extracted text or an empty string if none found.
+     * @param string $string The input string.
+     * @return array An array containing category and idnumber
      */
-    function extract_between_brackets($string) {
+    protected function extract_between_brackets($string) {
         preg_match('/\[(.*?)\]$/', $string, $matches);
         $idnumber = $matches[1] ?? '';
-        // Remove the idnumber part (including brackets) from the original string
+        // Remove the idnumber part (including brackets) from the original string.
         $category = trim(preg_replace('/\s*\[.*?\]$/', '', $string));
         return ['category' => $category, 'idnumber' => $idnumber];
     }
@@ -224,6 +224,7 @@ class qformat_gift_guessit extends qformat_default {
         $endchar = chr(13);
         $questionnumber = 1;
         $hascategory = false;
+        $categoryname = '';
         foreach ($lines as $line) {
             $newlines = explode($endchar, $line);
             $linescount = count($newlines);
@@ -277,7 +278,7 @@ class qformat_gift_guessit extends qformat_default {
      * this method processes the lines and converts them into a question object
      * that can be further processed and inserted into Moodle.
      *
-     * @param array $lines The array of lines defining a question.
+     * @param array $line The array of lines defining a question.
      * @return object The question object generated from the input lines.
      */
     public function readquestion($line) {
@@ -333,7 +334,7 @@ class qformat_gift_guessit extends qformat_default {
         // Description goes in fact to the Question text field in all Moodle questions.
         // But in the guessit question it has been made optional, so can be entered as ''.
         // NO DESCRIPTION PROVIDED is only displayed on the import page.
-        $name = ($name == '') ? $description : $name;
+        $name = ($name == '') ? strip_tags($description) : $name;
         $name = ($name == '') ? $guessitgaps : $name;
         if ($description !== '') {
             $description = str_replace(':', '', $description);

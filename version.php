@@ -18,15 +18,17 @@
  * Version information for the calculated question type.
  *
  * @package    qformat_gift_guessit
- * @copyright  2011 The Open University
+ * @copyright  2025 Joseph Rézeau <moodle@rezeau.org>
+ * @copyright  based on GIFT format by 2011 The Open University
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qformat_gift_guessit';
-$plugin->version   = 2025021500;
-
+$plugin->version   = 2025021600;
 $plugin->requires  = 2024100100;
-
 $plugin->maturity  = MATURITY_ALPHA;
+$plugin->dependencies = [
+    'qtype_guessit' => 2025020500,
+];
