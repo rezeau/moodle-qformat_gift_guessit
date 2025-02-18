@@ -243,9 +243,6 @@ class qformat_gift_guessit extends qformat_default {
 
                 if (substr($line, 0, 2) !== '//') {
                     $question = $this->readquestion($line);
-                    echo '<pre>';
-                    print_r($question);
-                    echo '</pre>';
                     if ($question) {
                         if (!$hascategory && !isset($question->questiontext)) {
                             $question->questiontext = '';
