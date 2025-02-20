@@ -1,0 +1,30 @@
+// file with errors of formatting for guessit wordle
+// No brackets: no word(s) to be guessed: no guessitgaps
+Too many cooks
+
+// Brackets do not match
+{PIZZA
+
+// Brackets do not match
+PESTO}
+
+// Question name not correctly enclosed :...::
+:Question 02::Find this word{SALMI}
+
+// Question name not correctly enclosed in ::...:
+::Question 03:Guess this drink{COFFEE}
+
+// Question name not correctly enclosed in :...:
+:Question 05:{PASTA}
+
+// Question name not correctly enclosed in ::...
+::Question 06{WHISKY}
+
+// Wordle word not uppercase
+{tiger[wordle]}
+
+// Wordle word too long (max is 8 characters)
+{CROCODILE[wordle]}
+
+// wordle minimal (correct)
+{WHISKY[wordle]}

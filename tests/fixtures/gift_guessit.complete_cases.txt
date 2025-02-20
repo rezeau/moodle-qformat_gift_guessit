@@ -1,6 +1,6 @@
 // This gift_guessit file contains various possible cases of formattings with no errors and no category.
 
-// wordle minimal
+// wordle minimal (correct)
 {WHISKY[wordle]}
 
 // wordle full params and URL link in the feedback

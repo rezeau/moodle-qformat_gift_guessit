@@ -8,8 +8,6 @@ Too many cooks
 // Brackets do not match
 My tailor is rich}.
 
-{A rolling stone gathers no moss.}
-
 // Question name not correctly enclosed :...::
 :Question 02::Find this cook{Too many cooks spoil the broth.}
 
@@ -24,6 +22,9 @@ My tailor is rich}.
 
 // guessit sqare brackets do not match
 ::Proverb::Description{My sister is not a boy.[gapsizematchword|1}
+
+// guessit minimal params (correct)
+{A rolling stone gathers no moss.}
 
 // guessit full params (correct) At least one correct question is needed for behat test to work.
 ::English Proverb 01::When there are too many people...{Too many cooks spoil the broth.[gapsizematchword|8|1]}
