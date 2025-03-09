@@ -334,7 +334,6 @@ class qformat_gift_guessit extends qformat_default {
         // Description goes in fact to the Question text field in all Moodle questions.
         // But in the guessit question it has been made optional, so can be entered as ''.
         // NO DESCRIPTION PROVIDED is only displayed on the import page.
-        $name = ($name == '') ? strip_tags($description) : $name;
         $name = ($name == '') ? $guessitgaps : $name;
         if ($description !== '') {
             $description = str_replace(':', '', $description);
@@ -350,7 +349,11 @@ class qformat_gift_guessit extends qformat_default {
             $nbmax = ($nbmax == '') ? '10' : $nbmax;
             $question->nbmaxtrieswordle = $nbmax;
             if (preg_match('/[^A-Z]/', $guessitgaps) ) {
-                $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', '<br>' . $line));
+                $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', $line));
+                return false;
+            }
+            if (strlen($guessitgaps) > 8) {
+                $this->error('<br>' . get_string('wordletoolong', 'qformat_gift_guessit', $line));
                 return false;
             }
             $nbgaps = count(str_split($guessitgaps));

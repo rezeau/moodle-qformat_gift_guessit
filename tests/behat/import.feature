@@ -23,9 +23,9 @@ Feature: Test importing questions from GUESSIT format.
     And I press "id_submitbutton"
     Then I should see "Parsing questions from import file."
     And I should see "No description provided for question n°1 -> WHISKY"
-    And I should see "No description provided for question n°4 -> A rolling stone gathers no moss."
-    And I should see "Importing 6 questions from file"
-    And I should see "2. Guess an Italian dish that’s cooked in a very hot oven"
+    And I should see "No description provided for question n°5 -> A rolling stone gathers no moss."
+    And I should see "Importing 7 questions from file"
+    And I should see "3. Guess an Italian dish that’s cooked in a very hot oven"
     When I press "Continue"
     Then I should see "A rolling stone gathers no moss."
 
@@ -50,7 +50,7 @@ Feature: Test importing questions from GUESSIT format.
     And I should see "Importing 10 questions from file"
     And I should see "1. distribute according to a plan or set apart for a purpose"
     When I press "Continue"
-    Then I should see "a reserve of money set aside for some purpose"
+    Then I should see "ALLOCATE"
 
   @javascript @_file_upload
   Scenario: import wordle with html tags in description and URL link in feedback
@@ -61,7 +61,7 @@ Feature: Test importing questions from GUESSIT format.
     And I should see "Importing 1 questions from file"
     And I should see "1. Guess an _Italian_ type of dish"
     When I press "Continue"
-    And I should see "Guess an Italian type of dish"
+    And I should see "PASTA"
 
   @javascript @_file_upload
   Scenario: import guessit file with errors
@@ -83,3 +83,26 @@ Feature: Test importing questions from GUESSIT format.
     And I should see "2. When there are too many people..."
     And I press "Continue"
     And I should see "A rolling stone gathers no moss."
+
+  @javascript @_file_upload
+  Scenario: import guessit wordle file with errors
+    When I set the field "id_format_gift_guessit" to "1"
+    And I click on "//a[contains(@href,'#id_generalcontainer')]" "xpath_element"
+    And I set the field "id_stoponerror" to "0"
+    And I upload "question/format/gift_guessit/tests/fixtures/gift_guessit_.wordle_with_errors.txt" file to "Import" filemanager
+    And I press "id_submitbutton"
+    Then I should see "Parsing questions from import file."
+    And I should see "Error importing question"
+    And I should see "Could not find a pair of {...} around word(s) to be guessed -> Too many cooks"
+    And I should see "Could not find a pair of {...} around word(s) to be guessed -> {PIZZA"
+    And I should see "Could not find a pair of {...} around word(s) to be guessed -> PESTO}"
+    And I should see "No name provided or badly formatted colons for this question -> :Question 02::Find this word{SALMI}"
+    And I should see "No name provided or badly formatted colons for this question -> ::Question 03:Guess this drink{COFFEE}"
+    And I should see "No name provided or badly formatted colons for this question -> :Question 05:{PASTA}"
+    And I should see "No name provided or badly formatted colons for this question -> ::Question 06{WHISKY}"
+    And I should see "ERROR! In the Wordle option, You must type a single word and only use UPPERCASE LETTERS (A-Z) and no accents -> {tiger[wordle]}"
+    And I should see "Too long! ERROR! In the Wordle option, words are limited to 8 characters. -> {CROCODILE[wordle]}"
+    And I should see "No description provided for question n°1 -> WHISKY"
+    And I should see "Importing 1 questions from file"
+    And I press "Continue"
+    And I should see "WHISKY"

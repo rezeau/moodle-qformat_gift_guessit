@@ -1,7 +1,11 @@
-// This gift_guessit file contains various possible cases of formattings with no errors and no category.
+// This gift_guessit file contains various possible cases of formattings with no errors and a category.
+$CATEGORY: All guessit and wordle cases
 
-// wordle minimal (correct)
+// wordle minimal
 {WHISKY[wordle]}
+
+// wordle with no question name but with instructions (definition)
+A group of manuscript pages stitched together on one side to form a book; as opposed to pages sewn together on both sides to form a continuous scroll that had to be rolled up for storage and unrolled to be read.{CODEX[wordle]}
 
 // wordle full params and URL link in the feedback
 ::wordle01::Guess an Italian dish that’s cooked in a very hot oven{PIZZA[wordle|5]####Click to read more about <a href="https://nomadparadise.com/italian-pizza/">Italian pizzas</a>.}
