@@ -1,24 +1,24 @@
 // Import wordle with category and minimal formatting
 $CATEGORY: Wordle Academic glossary
 
-distribute according to a plan or set apart for a purpose{ALLOCATE[wordle]}
+distribute according to a plan or set apart for a purpose{ALLOCATE}
 
-having reached full natural growth or development{MATURE[wordle]}
+having reached full natural growth or development{MATURE}
 
-keep an eye on; keep under surveillance{MONITOR[wordle]}
+keep an eye on; keep under surveillance{MONITOR}
 
-anything that contributes causally to a result{FACTOR[wordle]}
+anything that contributes causally to a result{FACTOR}
 
-of a government with central and regional authorities{FEDERAL[wordle]}
+of a government with central and regional authorities{FEDERAL}
 
-a reserve of money set aside for some purpose{FUND[wordle]}
+a reserve of money set aside for some purpose{FUND}
 
-to break or act against something, such as a law, agreement, principle{VIOLATE[wordle]}
+to break or act against something, such as a law, agreement, principle{VIOLATE}
 
-physical and mental health and happiness; state support for the poor{WELFARE[wordle]}
+physical and mental health and happiness; state support for the poor{WELFARE}
 
-an area in which something operates or has power or control{SCOPE[wordle]}
+an area in which something operates or has power or control{SCOPE}
 
-similar things placed in order or one after another{SERIES[wordle]}
+similar things placed in order or one after another{SERIES}
 
 

@@ -26,6 +26,7 @@ $string['braceerror'] = 'Could not find a pair of {...} around word(s) to be gue
 $string['bracketserror'] = 'Incorrectly matched square brackets in this question -> {$a}';
 $string['giftnovalidquestion'] = 'There is an error in your Guessit question formatting. Check the documentation.';
 $string['giftqtypenotset'] = 'Question type is not set';
+$string['nbtrieserror'] = 'Number of tries {$a->nbtries} not in correct range: 6, 8, 10, 12, 14 -> {$a->line}';
 $string['nodescriptionprovided'] = 'No description provided for question n°{$a->questionnumber} -> {$a->questionname}';
 $string['noguessitgaps'] = 'Could not find word(s) to be guessed in question -> {$a}';
 $string['nohandler'] = 'No handler for question type {$a}';

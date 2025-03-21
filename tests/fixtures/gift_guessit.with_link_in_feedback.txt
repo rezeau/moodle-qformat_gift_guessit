@@ -1,2 +1,2 @@
 // import wordle with html tags in description and URL link in feedback
-Guess an <em>Italian</em> type of dish{PASTA[wordle|5]####Click to see <a href="https://www.butter-n-thyme.com/types-of-pizza">many types of pizza</a>}
+Guess an <em>Italian</em> type of dish{PASTA####Click to see <a href="https://www.butter-n-thyme.com/types-of-pizza">many types of pizza</a>}

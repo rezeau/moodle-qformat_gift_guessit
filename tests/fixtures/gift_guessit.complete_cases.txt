@@ -1,17 +1,20 @@
 // This gift_guessit file contains various possible cases of formattings with no errors and a category.
 $CATEGORY: All guessit and wordle cases
 
-// wordle minimal
-{WHISKY[wordle]}
+// guessit full params with 8 tries before help etc.
+::English Proverb 01::In Egypt they say "Two captains on the ship will sink it."{Too many cooks spoil the broth.[8]####When there are too many people trying to lead and give their opinions, it's confusing and leads to bad results. Jobs and projects should have one or two strong leaders.}
+
+// wordle minimal will detect single word must be capitalized
+{WHISKY}
 
 // wordle with no question name but with instructions (definition)
-A group of manuscript pages stitched together on one side to form a book; as opposed to pages sewn together on both sides to form a continuous scroll that had to be rolled up for storage and unrolled to be read.{CODEX[wordle]}
+A group of manuscript pages stitched together on one side to form a book; as opposed to pages sewn together on both sides to form a continuous scroll that had to be rolled up for storage and unrolled to be read.{CODEX}
 
-// wordle full params and URL link in the feedback
-::wordle01::Guess an Italian dish that’s cooked in a very hot oven{PIZZA[wordle|5]####Click to read more about <a href="https://nomadparadise.com/italian-pizza/">Italian pizzas</a>.}
+// wordle with 5 maxtries and URL link in the feedback
+::name pizza::Guess an Italian dish that’s cooked in a very hot oven{PIZZA[8]####Click to read more about <a href="https://nomadparadise.com/italian-pizza/">Italian pizzas</a>.}
 
-// wordle no question name
-Guess an Italian type of dish{PASTA[wordle|5]####More than 600 different types of pasta exist from all regions of Italy.}
+// wordle no question name with 14 maxtries 
+Guess an Italian type of dish{PASTA[14]####More than 600 different types of pasta exist from all regions of Italy.}
 
 // guessit minimal
 {A rolling stone gathers no moss.}
@@ -19,5 +22,3 @@ Guess an Italian type of dish{PASTA[wordle|5]####More than 600 different types o
 // guessit no question name and uses default params
 Eating an apple a day will keep you healthy.{An apple a day keeps the doctor away.}
 
-// guessit full params
-::English Proverb 01::In Egypt they say "Two captains on the ship will sink it."{Too many cooks spoil the broth.[gapsizematchword|8|1]####When there are too many people trying to lead and give their opinions, it's confusing and leads to bad results. Jobs and projects should have one or two strong leaders.}

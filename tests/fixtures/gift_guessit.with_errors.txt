@@ -23,6 +23,9 @@ My tailor is rich}.
 // guessit sqare brackets do not match
 ::Proverb::Description{My sister is not a boy.[gapsizematchword|1}
 
+// guessit nbtries error
+{My tailor is very rich.[9]}
+
 // guessit minimal params (correct)
 {A rolling stone gathers no moss.}
 

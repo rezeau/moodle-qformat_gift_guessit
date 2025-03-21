@@ -21,10 +21,13 @@ PESTO}
 ::Question 06{WHISKY}
 
 // Wordle word not uppercase
-{tiger[wordle]}
+{tiger}
 
 // Wordle word too long (max is 8 characters)
-{CROCODILE[wordle]}
+{CROCODILE}
+
+// Wordle maxtries error
+{CROCODILE[5]}
 
 // wordle minimal (correct)
-{WHISKY[wordle]}
+{WHISKY}

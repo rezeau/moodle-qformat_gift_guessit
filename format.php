@@ -84,46 +84,20 @@ class qformat_gift_guessit extends qformat_default {
      * @return array|string An associative array of extracted elements or 'ERROR' on failure.
      */
     protected function extract_elements($input) {
-        $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*(\[(.*?)\]))?(?:####(.*?))?\}/';
+        $pattern = '/(?:::(.*?)::)?([^\{]*)\{(.*?)(?:\s*\[(\d+)\])?(?:####(.*?))?\}/';
         if (preg_match($pattern, $input, $matches)) {
             return array_filter([
                 'name' => isset($matches[1]) ? trim($matches[1], '[]') : null,
                 'description' => isset($matches[2]) ? trim($matches[2], '[]') : null,
                 'guessitgaps' => isset($matches[3]) ? trim($matches[3], '[]') : null,
-                'params' => isset($matches[4]) ? trim($matches[4], '[]') : null,
-                'generalfeedback' => trim($matches[6] ?? ''),
+                'nbtries' => isset($matches[4]) ? trim($matches[4], '[]') : null,
+                'generalfeedback' => trim($matches[5] ?? ''),
             ], function ($value) {
                 return $value !== null && $value !== '';
             });
         }
         // Should not happen.
         return 'ERROR';
-    }
-
-    /**
-     * Extracts parameter elements from a delimited string.
-     *
-     * @param string $params The parameter string to parse, delimited by '|'.
-     * @return array An associative array containing 'display', 'nbmax', and 'rmfb' values.
-     */
-    protected function extract_params_elements($params) {
-        $elements = explode('|', $params);
-        $display = $elements[0] ?? null;
-        $nbmax = $elements[1] ?? null;
-        $rmfb = $elements[2] ?? null;
-        if (is_numeric($display)) {
-            $nbmax = $display;
-            $display = null;
-        }
-        if ($nbmax < 2) {
-            $rmfb = $nbmax;
-            $nbmax = '';
-        }
-        return [
-            'display' => $display !== null ? $display : null,
-            'nbmax' => $nbmax !== null ? $nbmax : null,
-            'rmfb' => $rmfb !== null ? $rmfb : null,
-        ];
     }
 
     /**
@@ -180,6 +154,13 @@ class qformat_gift_guessit extends qformat_default {
         return true;
     }
 
+    protected function check_value_in_list($nbtries) {
+        if ($nbtries == '') {
+            return true;
+        }
+        $validValues = ['6', '8', '10', '12', '14'];
+        return in_array($nbtries    , $validValues);
+    }
 
     /**
      * Validates whether a line is correctly enclosed with a specific pattern.
@@ -297,37 +278,31 @@ class qformat_gift_guessit extends qformat_default {
         $question->qtype = 'guessit';
         $name = '';
         $description = '';
-        $display = 'gapsizegrow';
-        $question->gapsizedisplay = 'gapsizegrow';
-        $nbmax = '6';
-        $rmfb = '0';
-        $question->nbmaxtrieswordle = '10';
-        $question->nbtriesbeforehelp = '6';
-
         $isname = $this->is_correctly_enclosed($line, 'noname');
         if (!$isname) {
             $question = null;
             return false;
             return $question;
         }
-
+        $question->nbmaxtrieswordle = '10';
+        $question->nbtriesbeforehelp = '6';
         $elements = $this->extract_elements($line);
-
         if ($this->check_element($elements['guessitgaps'], 'noguessitgaps', $line) == '') {
             return false;
-        }
-
-        if (isset($elements['params'])) {
-            $params = $this->extract_params_elements($elements['params']);
-            $nbmax = ($params['nbmax'] == null) ? null : $params['nbmax'];
-            $display = ($params['display'] == null) ? 'gapsizegrow' : $params['display'];
-            $nbmax = ($params['nbmax'] == null) ? null : $params['nbmax'];
-            $rmfb = ($params['rmfb'] == null) ? null : $params['rmfb'];
         }
         $name = isset($elements['name']) ? $elements['name'] : '';
         $description = isset($elements['description']) ? $elements['description'] : '';
         $guessitgaps = isset($elements['guessitgaps']) ? $elements['guessitgaps'] : '';
+        $nbtries = isset($elements['nbtries']) ? $elements['nbtries'] : '';
         $generalfeedback = isset($elements['generalfeedback']) ? $elements['generalfeedback'] : '';
+
+        // Check nbtries values from 6 to 14
+        if (!$this->check_value_in_list($nbtries)) {
+            $a = new stdClass();
+            $a->nbtries = '(' . $nbtries . ')';
+            $a->line = $line;
+            $this->error('<br>' . get_string('nbtrieserror', 'qformat_gift_guessit', $a));
+        }
 
         // Add paragraph tags to separate the description from the gaps line.
         $description = ($description == null) ? '' : $description;
@@ -343,10 +318,12 @@ class qformat_gift_guessit extends qformat_default {
         $name = str_replace(':', '', $name);
         $question->name = $name;
         $nbgaps = 0;
-        if ($display == 'wordle') {
+        // If guessitgaps is single word, then it's a Wordle.
+        $wordle = preg_match('/^\S+$/', $guessitgaps);
+        if ($wordle) {
             $question->wordle = '1';
-            // Set default if param is missing.
-            $nbmax = ($nbmax == '') ? '10' : $nbmax;
+            // Set default if nbtries is missing.
+            $nbmax = ($nbtries == '') ? '10' : $nbtries;
             $question->nbmaxtrieswordle = $nbmax;
             if (preg_match('/[^A-Z]/', $guessitgaps) ) {
                 $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', $line));
@@ -354,20 +331,18 @@ class qformat_gift_guessit extends qformat_default {
             }
             if (strlen($guessitgaps) > 8) {
                 $this->error('<br>' . get_string('wordletoolong', 'qformat_gift_guessit', $line));
-                return false;
+                //return false;
             }
             $nbgaps = count(str_split($guessitgaps));
         } else {
             $question->wordle = '0';
-            // Set default if param is missing.
-            $nbmax = ($nbmax == '') ? '6' : $nbmax;
+            // Set default if nbtries is missing.
+            $nbmax = ($nbtries == '') ? '6' : $nbtries;
             $question->nbtriesbeforehelp = $nbmax;
-            $question->gapsizedisplay = $display;
             $nbgaps = count(explode(' ', $guessitgaps));
         }
 
         $question->guessitgaps = $guessitgaps;
-        $question->removespecificfeedback = $rmfb;
         $question->generalfeedback = $generalfeedback;
         // To prevent penalty display when viewing guessit questions.
         $question->penalty = 0;
