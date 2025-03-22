@@ -154,12 +154,18 @@ class qformat_gift_guessit extends qformat_default {
         return true;
     }
 
+    /**
+     * Checks if the given value is in the predefined list of valid values.
+     *
+     * @param mixed $nbtries The value to check.
+     * @return bool True if the value is empty or in the valid list, otherwise false.
+     */
     protected function check_value_in_list($nbtries) {
         if ($nbtries == '') {
             return true;
         }
-        $validValues = ['6', '8', '10', '12', '14'];
-        return in_array($nbtries    , $validValues);
+        $validvalues = ['6', '8', '10', '12', '14'];
+        return in_array($nbtries    , $validvalues);
     }
 
     /**
@@ -296,7 +302,7 @@ class qformat_gift_guessit extends qformat_default {
         $nbtries = isset($elements['nbtries']) ? $elements['nbtries'] : '';
         $generalfeedback = isset($elements['generalfeedback']) ? $elements['generalfeedback'] : '';
 
-        // Check nbtries values from 6 to 14
+        // Check nbtries values from 6 to 14.
         if (!$this->check_value_in_list($nbtries)) {
             $a = new stdClass();
             $a->nbtries = '(' . $nbtries . ')';
@@ -331,7 +337,6 @@ class qformat_gift_guessit extends qformat_default {
             }
             if (strlen($guessitgaps) > 8) {
                 $this->error('<br>' . get_string('wordletoolong', 'qformat_gift_guessit', $line));
-                //return false;
             }
             $nbgaps = count(str_split($guessitgaps));
         } else {
