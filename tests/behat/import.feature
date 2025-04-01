@@ -78,7 +78,7 @@ Feature: Test importing questions from GUESSIT format.
     And I should see "No name provided or badly formatted colons for this question -> ::Question 03:The description{My tailor is rich.}"
     And I should see "No name provided or badly formatted colons for this question -> :Question 05:{My brother is not a girl.}"
     And I should see "No name provided or badly formatted colons for this question -> ::Question 06{My mum likes me.}"
-    And I should see "Incorrectly matched square brackets in this question -> ::Proverb::Description{My sister is not a boy.[gapsizematchword|1}"
+    And I should see "Incorrectly matched square brackets in this question -> ::Proverb::Description{My sister is not a boy.[6}"
     And I should see "Number of tries (9) not in correct range: 6, 8, 10, 12, 14 -> {My tailor is very rich.[9]}"
     And I should see "Importing 3 questions from file"
     And I should see "3. When there are too many people..."
