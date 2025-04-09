@@ -258,15 +258,10 @@ class qformat_gift_guessit extends qformat_default {
         return $questions;
     }
 
-    /**
-     * Parses an array of lines to create a question object suitable for Moodle.
-     *
-     * Given an array of lines representing a question in a specific format,
-     * this method processes the lines and converts them into a question object
-     * that can be further processed and inserted into Moodle.
-     *
-     * @param array $line The array of lines defining a question.
-     * @return object The question object generated from the input lines.
+    /**     
+     * @param $line string
+     * @return object|null The question object generated from the input lines
+     * or null if error in the gift file.
      */
     public function readquestion($line) {
         $question = $this->defaultquestion();
@@ -286,15 +281,13 @@ class qformat_gift_guessit extends qformat_default {
         $description = '';
         $isname = $this->is_correctly_enclosed($line, 'noname');
         if (!$isname) {
-            $question = null;
-            return false;
-            return $question;
+            return null;
         }
         $question->nbmaxtrieswordle = '10';
         $question->nbtriesbeforehelp = '6';
         $elements = $this->extract_elements($line);
         if ($this->check_element($elements['guessitgaps'], 'noguessitgaps', $line) == '') {
-            return false;
+            return null;
         }
         $name = isset($elements['name']) ? $elements['name'] : '';
         $description = isset($elements['description']) ? $elements['description'] : '';
@@ -333,7 +326,7 @@ class qformat_gift_guessit extends qformat_default {
             $question->nbmaxtrieswordle = $nbmax;
             if (preg_match('/[^A-Z]/', $guessitgaps) ) {
                 $this->error('<br>' . get_string('wordlecapitalsonly', 'qformat_gift_guessit', $line));
-                return false;
+                return null;
             }
             if (strlen($guessitgaps) > 8) {
                 $this->error('<br>' . get_string('wordletoolong', 'qformat_gift_guessit', $line));
