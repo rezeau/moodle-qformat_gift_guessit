@@ -258,7 +258,9 @@ class qformat_gift_guessit extends qformat_default {
         return $questions;
     }
 
-    /**     
+    /**
+     * Parses a line extracted from the GIFT text file to get question parameters.
+     *
      * @param $line string
      * @return object|null The question object generated from the input lines
      * or null if error in the gift file.
