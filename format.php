@@ -303,6 +303,7 @@ class qformat_gift_guessit extends qformat_default {
             $a->nbtries = '(' . $nbtries . ')';
             $a->line = $line;
             $this->error('<br>' . get_string('nbtrieserror', 'qformat_gift_guessit', $a));
+            return null;
         }
 
         // Add paragraph tags to separate the description from the gaps line.

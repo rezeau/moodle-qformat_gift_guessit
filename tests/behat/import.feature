@@ -80,8 +80,8 @@ Feature: Test importing questions from GUESSIT format.
     And I should see "No name provided or badly formatted colons for this question -> ::Question 06{My mum likes me.}"
     And I should see "Incorrectly matched square brackets in this question -> ::Proverb::Description{My sister is not a boy.[6}"
     And I should see "Number of tries (9) not in correct range: 6, 8, 10, 12, 14 -> {My tailor is very rich.[9]}"
-    And I should see "Importing 3 questions from file"
-    And I should see "3. When there are too many people..."
+    And I should see "Importing 2 questions from file"
+    And I should see "2. When there are too many people..."
     And I press "Continue"
     And I should see "A rolling stone gathers no moss."
 
@@ -105,6 +105,6 @@ Feature: Test importing questions from GUESSIT format.
     And I should see "Number of tries (5) not in correct range: 6, 8, 10, 12, 14 -> {CROCODILE[5]}"
     And I should see "Too long! ERROR! In the Wordle option, words are limited to 8 characters. -> {CROCODILE}"
     And I should see "No description provided for question n°1 -> CROCODILE"
-    And I should see "Importing 3 questions from file"
+    And I should see "Importing 2 questions from file"
     And I press "Continue"
     And I should see "CROCODILE"

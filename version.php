@@ -26,7 +26,7 @@
 defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'qformat_gift_guessit';
-$plugin->version   = 2025041900;
+$plugin->version   = 2025051200;
 $plugin->requires  = 2024100100;
 $plugin->release   = '5.0';
 $plugin->maturity  = MATURITY_STABLE;
